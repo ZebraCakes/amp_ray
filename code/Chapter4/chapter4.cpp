@@ -1,7 +1,7 @@
 #include <stdio.h>
 
 #include "..\amp_lib\amp_math.h"
-#include "..\amp_lib\amp_ray.h"
+#include "..\common\ray.h"
 
 inline bool
 HitSphere(v3 *Center, r32 Radius, ray *Ray)
@@ -51,7 +51,7 @@ main(int ArgumentCount, char **Arguments)
     }
     else
     {
-        outputFile = fopen("chapter3_output.ppm", "w");
+        outputFile = fopen("chapter4_output.ppm", "w");
     }
 
     fprintf(outputFile, "P3\n%d %d\n255\n", Width, Height);

@@ -1,7 +1,7 @@
 #include <stdio.h>
 
 #include "..\amp_lib\amp_math.h"
-#include "..\amp_lib\amp_ray.h"
+#include "..\common\ray.h"
 
 inline bool
 HitSphere(sphere *Sphere, ray *Ray, r32 tMin, r32 tMax, hit_record *Record)

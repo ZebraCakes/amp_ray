@@ -1,6 +1,6 @@
 @echo off
 
-set CommonCompilerFlags -nologo -O2 -fp:fast -Wall
+set CommonCompilerFlags=-nologo -O2 -fp:fast
 
 IF NOT EXIST ..\..\build mkdir ..\..\build
 pushd ..\..\build
