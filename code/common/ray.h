@@ -17,20 +17,35 @@ union ray
     v3 E[2];
 };
 
+enum MATERIAL_TYPE
+{
+    LAMBERTIAN = 0x1,
+    METAL = 0x2,
+};
+struct material
+{
+    MATERIAL_TYPE Type;
+    v3 Albedo;
+    r32 Perturbation;
+};
+
 union sphere
 {
     struct
     {
         v3  Center;
         r32 Radius;
+        material Material;
     };
 };
+
 
 struct hit_record
 {
     r32 t;
     v3 Pos;
     v3 Normal;
+    material Material;
 };
 
 inline v3
