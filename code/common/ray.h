@@ -21,12 +21,15 @@ enum MATERIAL_TYPE
 {
     LAMBERTIAN = 0x1,
     METAL = 0x2,
+    DIALECTRIC = 0x4,
 };
+
 struct material
 {
     MATERIAL_TYPE Type;
     v3 Albedo;
     r32 Perturbation;
+    r32 RefractionIndex;
 };
 
 union sphere
