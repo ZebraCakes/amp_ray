@@ -126,6 +126,8 @@ main(int ArgumentCount, char **Arguments)
     Spheres[1].Center = V3(0.0, -100.5, -1.0);
     Spheres[1].Radius = 100;
 
+    SeedRand();
+
     for (i32 y = Height - 1;
         y >= 0;
         --y)

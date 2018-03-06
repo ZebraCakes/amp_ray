@@ -129,6 +129,8 @@ main(int ArgumentCount, char **Arguments)
     Spheres[3].Radius = 0.5;
     Spheres[3].Material = MetalMaterial(&V3(0.8, 0.8, 0.8), 1.0);
 
+    SeedRand();
+
     for (i32 y = Height - 1;
         y >= 0;
         --y)

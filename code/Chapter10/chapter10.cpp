@@ -135,6 +135,8 @@ main(int ArgumentCount, char **Arguments)
     Spheres[4].Radius = -0.45;
     Spheres[4].Material = DialectricMaterial(1.5);
     
+    SeedRand();
+
     for (i32 y = Height - 1;
         y >= 0;
         --y)
