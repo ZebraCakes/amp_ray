@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <thread>
 
 #include "..\amp_lib\amp_math.h"
 #include "..\common\ray.h"
@@ -149,6 +150,54 @@ CreateRandomScene(sphere *Spheres, u32 SphereCount)
     Spheres[NextSphere++].Material = MetalMaterial(&V3(0.7, 0.6, 0.5), 0.0);
 }
 
+
+
+void
+ProcessRows(volatile u32 *FrameBuffer, int StartRow, int RowCount,
+            int BufferWidth, int BufferHeight,
+            int Stride, int SamplesPerPixel,
+            camera *Camera, sphere *Spheres, int SphereCount)
+{
+    u8 *Pixel = (u8*)(FrameBuffer + StartRow*BufferWidth);
+
+    for (i32 y = BufferHeight - StartRow - 1;
+        y >= BufferHeight - (StartRow + RowCount);
+        --y)
+    {
+        for (i32 x = 0;
+            x < Stride;
+            ++x)
+        {
+            v3 PixelColor = V3(0.0, 0.0, 0.0);
+
+            for (int Sample = 0;
+                Sample < SamplesPerPixel;
+                ++Sample)
+            {
+                v2 uv = V2(((r32)x + RandomRealInRange(0.0, 1.0)) / (r32)BufferWidth, ((r32)y + RandomRealInRange(0.0, 1.0)) / (r32)BufferHeight);
+
+                ray CurrentRay = RayAtPoint(Camera, &uv);
+
+                v3 Pos = PointAtParameter(&CurrentRay, 2.0);
+                PixelColor += ComputePixel(&CurrentRay, Spheres, SphereCount, 0);
+
+            }
+
+            PixelColor /= (r32)SamplesPerPixel;
+            //NOTE(Adam):  Gamma correct output pixel
+            PixelColor = V3(sqrt(PixelColor.x), sqrt(PixelColor.y), sqrt(PixelColor.z));
+            v3i PixelColorInt = V3i((i32)(255.9*PixelColor.r),
+                (i32)(255.9*PixelColor.g),
+                (i32)(255.9*PixelColor.b));
+
+            *Pixel++ = PixelColorInt.r;
+            *Pixel++ = PixelColorInt.g;
+            *Pixel++ = PixelColorInt.b;
+            *Pixel++ = 0xFF;
+        }
+    }
+}
+
 void
 main(int ArgumentCount, char **Arguments)
 {
@@ -169,7 +218,7 @@ main(int ArgumentCount, char **Arguments)
     fprintf(outputFile, "P3\n%d %d\n255\n", Width, Height);
     SeedRand();
     
-    u32 *FrameBuffer = (u32*)malloc(sizeof(u32)*Width*Height);
+    volatile u32 *FrameBuffer = (u32*)malloc(sizeof(u32)*Width*Height);
 
 
     v3 Eye = V3(13.0, 2.0, 3.0);
@@ -183,46 +232,22 @@ main(int ArgumentCount, char **Arguments)
     sphere Spheres[488];
 
     CreateRandomScene(Spheres, ARRAY_COUNT(Spheres));
-    u8 *Pixel = (u8*)FrameBuffer;
 
-    for (i32 y = Height - 1;
-        y >= 0;
-        --y)
-    {
-        for (i32 x = 0;
-            x < Width;
-            ++x)
-        {
-            v3 PixelColor = V3(0.0, 0.0, 0.0);
+    u32 ThreadCount = std::thread::hardware_concurrency();
+    std::thread *Threads = (std::thread*)malloc(sizeof(std::thread)*(ThreadCount - 1));
 
-            for (int Sample = 0;
-                Sample < SamplesPerPixel;
-                ++Sample)
-            {
-                v2 uv = V2(((r32)x + RandomRealInRange(0.0, 1.0)) / (r32)Width, ((r32)y + RandomRealInRange(0.0, 1.0)) / (r32)Height);
+    u32 RangePerThread = Height / 4;
+    std::thread thread0 = std::thread(ProcessRows, FrameBuffer, RangePerThread*0, RangePerThread, Width, Height, Width, SamplesPerPixel, &Camera, Spheres, ARRAY_COUNT(Spheres));
+    std::thread thread1 = std::thread(ProcessRows, FrameBuffer, RangePerThread*1, RangePerThread, Width, Height, Width, SamplesPerPixel, &Camera, Spheres, ARRAY_COUNT(Spheres));
+    std::thread thread2 = std::thread(ProcessRows, FrameBuffer, RangePerThread*2, RangePerThread, Width, Height, Width, SamplesPerPixel, &Camera, Spheres, ARRAY_COUNT(Spheres));
+    std::thread thread3 = std::thread(ProcessRows, FrameBuffer, RangePerThread*3, RangePerThread, Width, Height, Width, SamplesPerPixel, &Camera, Spheres, ARRAY_COUNT(Spheres));
+    
+    thread0.join();
+    thread1.join();
+    thread2.join();
+    thread3.join();
 
-                ray CurrentRay = RayAtPoint(&Camera, &uv);
-
-                v3 Pos = PointAtParameter(&CurrentRay, 2.0);
-                PixelColor += ComputePixel(&CurrentRay, Spheres, ARRAY_COUNT(Spheres), 0);
-
-            }
-            
-            PixelColor /= (r32)SamplesPerPixel;
-            //NOTE(Adam):  Gamma correct output pixel
-            PixelColor = V3(sqrt(PixelColor.x), sqrt(PixelColor.y), sqrt(PixelColor.z));
-            v3i PixelColorInt = V3i((i32)(255.9*PixelColor.r),
-                                    (i32)(255.9*PixelColor.g),
-                                    (i32)(255.9*PixelColor.b));
-
-            *Pixel++ = PixelColorInt.r;
-            *Pixel++ = PixelColorInt.g;
-            *Pixel++ = PixelColorInt.b;
-            *Pixel++ = 0xFF;
-        }
-    }
-
-    stbi_write_png("output_chapter_12.png", Width, Height, 4, FrameBuffer, Width * 4);
+    stbi_write_png("output_chapter_12.png", Width, Height, 4, (void*)FrameBuffer, Width * 4);
     
 
     return;
