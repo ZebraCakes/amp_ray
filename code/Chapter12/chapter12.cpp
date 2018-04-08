@@ -5,6 +5,9 @@
 #include "..\common\camera.cpp"
 #include "..\common\material.cpp"
 
+#define STB_IMAGE_WRITE_IMPLEMENTATION
+#include "..\stb_lib\stb_image_write.h"
+
 internal bool
 HitSphere(sphere *Sphere, ray *Ray, r32 tMin, r32 tMax, hit_record *Record)
 {
@@ -166,6 +169,9 @@ main(int ArgumentCount, char **Arguments)
     fprintf(outputFile, "P3\n%d %d\n255\n", Width, Height);
     SeedRand();
     
+    u32 *FrameBuffer = (u32*)malloc(sizeof(u32)*Width*Height);
+
+
     v3 Eye = V3(13.0, 2.0, 3.0);
     v3 LookAt = V3(0.0, 0.0, 0.0);
     r32 FocalLength = 10.0;
@@ -177,7 +183,8 @@ main(int ArgumentCount, char **Arguments)
     sphere Spheres[488];
 
     CreateRandomScene(Spheres, ARRAY_COUNT(Spheres));
-    
+    u8 *Pixel = (u8*)FrameBuffer;
+
     for (i32 y = Height - 1;
         y >= 0;
         --y)
@@ -208,7 +215,15 @@ main(int ArgumentCount, char **Arguments)
                                     (i32)(255.9*PixelColor.g),
                                     (i32)(255.9*PixelColor.b));
 
-            fprintf(outputFile, "%d %d %d\n", PixelColorInt.r, PixelColorInt.g, PixelColorInt.b);
+            *Pixel++ = PixelColorInt.r;
+            *Pixel++ = PixelColorInt.g;
+            *Pixel++ = PixelColorInt.b;
+            *Pixel++ = 0xFF;
         }
     }
+
+    stbi_write_png("output_chapter_12.png", Width, Height, 4, FrameBuffer, Width * 4);
+    
+
+    return;
 }
