@@ -9,4 +9,7 @@ struct camera
     r32 LensRadius;
 
     v3 u, v, w;
+
+    r32 OpenTime;
+    r32 CloseTime;
 };

@@ -96,8 +96,10 @@ RayAtPoint(camera *Camera, v2 *st)
 
     v3 Radius = Camera->LensRadius*RandomUnitInDisk();
     v3 Offset = Camera->u*Radius.x + Camera->v*Radius.y;
+    r32 Time = Camera->OpenTime + RandomCanonical()*(Camera->CloseTime - Camera->OpenTime);
+
     Result.Origin = Camera->Origin + Offset;
     Result.Direction = Camera->LowerLeft + st->E[0]*Camera->Horizontal + st->E[1]*Camera->Vertical - Camera->Origin - Offset;
-
+    Result.CastTime = Time;
     return Result;
 }

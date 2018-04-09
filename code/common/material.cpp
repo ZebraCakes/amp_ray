@@ -60,6 +60,7 @@ Scatter(ray *Ray, hit_record *Record, v3 *Attenuation, ray *ScatteredRay)
         v3 Target = Record->Pos + Record->Normal + RandomVecInUnitSphere();
         ScatteredRay->Origin = Record->Pos;
         ScatteredRay->Direction = Target - Record->Pos;
+        ScatteredRay->CastTime = Ray->CastTime;
         *Attenuation = Record->Material.Albedo;
         result = true;
     }
@@ -68,6 +69,7 @@ Scatter(ray *Ray, hit_record *Record, v3 *Attenuation, ray *ScatteredRay)
         v3 ReflectedRay = Reflect(Normalize(Ray->Direction), Record->Normal);
         ScatteredRay->Origin =  Record->Pos;
         ScatteredRay->Direction = ReflectedRay + Record->Material.Perturbation*RandomVecInUnitSphere();
+        ScatteredRay->CastTime = Ray->CastTime;
         *Attenuation = Record->Material.Albedo;
         result = Dot(ScatteredRay->Direction, Record->Normal) > 0;
     }
@@ -114,6 +116,7 @@ Scatter(ray *Ray, hit_record *Record, v3 *Attenuation, ray *ScatteredRay)
             ScatteredRay->Direction = Refracted;
         }
 
+        ScatteredRay->CastTime = Ray->CastTime;
         result = true;
     }
     return result;

@@ -6,15 +6,21 @@ union ray
     {
         v3 A;
         v3 B;
+        r32 CastTime;
     };
     
     struct
     {
         v3 Origin;
         v3 Direction;
+        r32 _pad;
     };
 
-    v3 E[2];
+    struct
+    {
+        v3 E[2];
+        r32 pad_;
+    };
 };
 
 enum MATERIAL_TYPE
@@ -32,6 +38,12 @@ struct material
     r32 RefractionIndex;
 };
 
+enum SPHERE_STATE
+{
+    STATIC,
+    MOVING,
+};
+
 union sphere
 {
     struct
@@ -39,6 +51,12 @@ union sphere
         v3  Center;
         r32 Radius;
         material Material;
+
+        SPHERE_STATE State;
+        v3 StartPos;
+        v3 EndPos;
+        r32 StartTime;
+        r32 EndTime;
     };
 };
 
@@ -55,6 +73,19 @@ inline v3
 PointAtParameter(ray *Ray, r32 t)
 {
     v3 Result = Ray->Origin + t*Ray->Direction;
+
+    return Result;
+}
+
+inline v3
+SphereCenterAtTime(sphere *Sphere, r32 CurrentTme)
+{
+    v3 Result = Sphere->Center;
+    
+    if(Sphere->State == MOVING)
+    {
+        Result = Sphere->StartPos + ((CurrentTme - Sphere->StartTime) / (Sphere->EndTime - Sphere->StartTime))*(Sphere->EndPos - Sphere->StartPos);
+    }
 
     return Result;
 }
