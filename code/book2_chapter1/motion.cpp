@@ -168,7 +168,7 @@ ProcessRows(volatile u32 *FrameBuffer, int StartRow, int RowCount,
             int Stride, int SamplesPerPixel,
             camera *Camera, sphere *Spheres, int SphereCount)
 {
-    u8 *Pixel = (u8*)(FrameBuffer + StartRow*BufferWidth);
+    volatile u32 *Pixel = FrameBuffer + StartRow*BufferWidth;
 
     for (i32 y = BufferHeight - StartRow - 1;
         y >= BufferHeight - (StartRow + RowCount);
@@ -200,10 +200,7 @@ ProcessRows(volatile u32 *FrameBuffer, int StartRow, int RowCount,
                 (i32)(255.9*PixelColor.g),
                 (i32)(255.9*PixelColor.b));
 
-            *Pixel++ = PixelColorInt.r;
-            *Pixel++ = PixelColorInt.g;
-            *Pixel++ = PixelColorInt.b;
-            *Pixel++ = 0xFF;
+            *Pixel++ = PixelColorInt.r << 0 | PixelColorInt.g << 8 | PixelColorInt.b << 16 | 0xFF << 24;
         }
     }
 }
